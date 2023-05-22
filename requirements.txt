@@ -11,4 +11,5 @@ python-axolotl
 python-magic
 requests
 selenium
+numpy
 uvicorn
