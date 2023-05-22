@@ -11,7 +11,7 @@ services:
   
 
 
-  ChromeService:
+  ChromeService-ii:
     image: selenium/node-chrome:latest
     shm_size: "2gb"
     ports:
