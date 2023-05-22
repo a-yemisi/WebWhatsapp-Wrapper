@@ -14,6 +14,7 @@ from io import BytesIO
 from json import dumps, loads
 
 import magic
+import time
 from PIL import Image
 from axolotl.kdf.hkdfv3 import HKDFv3
 from axolotl.util.byteutil import ByteUtil
@@ -27,6 +28,8 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.keys import Keys
+
 
 from .objects.chat import UserChat, factory_chat
 from .objects.contact import Contact
@@ -73,7 +76,7 @@ class WhatsAPIDriver(object):
 
     _SELECTORS = {
         "firstrun": "#wrapper",
-        "qrCode": "canvas",
+        "qrCode": "canvas[aria-label=\"Scan me!\"]",
         "qrCodePlain": "div[data-ref]",
         "mainPage": ".two",
         "chatList": ".infinite-list-viewport",
@@ -176,6 +179,7 @@ class WhatsAPIDriver(object):
         self,
         client="firefox",
         username="API",
+        remote=False,
         proxy=None,
         command_executor=None,
         loadstyles=False,
@@ -190,6 +194,7 @@ class WhatsAPIDriver(object):
         """Initialises the webdriver"""
 
         self.logger = logger or self.logger
+        self.remote = remote
         extra_params = extra_params or {}
 
         if profile is not None:
@@ -264,8 +269,17 @@ class WhatsAPIDriver(object):
                 self.driver = webdriver.Chrome(chrome_options=self._profile, executable_path=executable_path, **extra_params)
             else:
                 self.driver = webdriver.Chrome(chrome_options=self._profile, **extra_params)
+            if self.remote:
+                self.logger.info("Starting Chrome remote webdriver")
+                self.driver = webdriver.Remote(
+                    command_executor=command_executor,
+                    desired_capabilities=capabilities,
+                    options=self._profile,
+                    **extra_params
+                )
 
-        elif client == "remote":
+
+        elif client == "firefox-remote":
             if self._profile_path is not None:
                 self._profile = webdriver.FirefoxProfile(self._profile_path)
             else:
@@ -276,6 +290,19 @@ class WhatsAPIDriver(object):
                 desired_capabilities=capabilities,
                 **extra_params,
             )
+        
+        elif client == "chrome-remote":
+            self._profile = webdriver.ChromeOptions()
+            if self._profile_path is not None:
+                self._profile.add_argument("user-data-dir=%s" % self._profile_path)
+            self.logger.info("Starting Chrome remote webdriver")
+            capabilities = DesiredCapabilities.CHROME.copy()
+            self.driver = webdriver.Remote(
+                    command_executor=command_executor,
+                    desired_capabilities=capabilities,
+                    options=self._profile,
+                    **extra_params
+                )
 
         else:
             self.logger.error("Invalid client: %s" % client)
@@ -293,6 +320,8 @@ class WhatsAPIDriver(object):
 
         profilePath = ""
         if self.client == "chrome":
+            profilePath = ""
+        elif self.client == "chrome-remote":
             profilePath = ""
         else:
             profilePath = self._profile.path
@@ -324,14 +353,14 @@ class WhatsAPIDriver(object):
         """
         WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self._SELECTORS['mainPage'] + ',' + self._SELECTORS['qrCode'])))
         try:
-            self.driver.find_element_by_css_selector(self._SELECTORS['mainPage'])
+            self.driver.find_element(By.CSS_SELECTOR, self._SELECTORS['mainPage'])
             return True
         except NoSuchElementException:
-            self.driver.find_element_by_css_selector(self._SELECTORS['qrCode'])
+            self.driver.find_element(By.CSS_SELECTOR, self._SELECTORS['qrCode'])
             return False
 
     def get_qr_plain(self):
-        return self.driver.find_element_by_css_selector(
+        return self.driver.find_element(By.CSS_SELECTOR,  
             self._SELECTORS["qrCodePlain"]
         ).get_attribute("data-ref")
 
@@ -339,7 +368,7 @@ class WhatsAPIDriver(object):
         """Get pairing QR code from client"""
         if "Click to reload QR code" in self.driver.page_source:
             self.reload_qr()
-        qr = self.driver.find_element_by_css_selector(self._SELECTORS["qrCode"])
+        qr = self.driver.find_element(By.CSS_SELECTOR, self._SELECTORS["qrCode"])
         if filename is None:
             fd, fn_png = tempfile.mkstemp(prefix=self.username, suffix=".png")
         else:
@@ -353,7 +382,7 @@ class WhatsAPIDriver(object):
     def get_qr_base64(self):
         if "Click to reload QR code" in self.driver.page_source:
             self.reload_qr()
-        qr = self.driver.find_element_by_css_selector(self._SELECTORS["qrCode"])
+        qr = self.driver.find_element(By.CSS_SELECTOR,  self._SELECTORS["qrCode"])
 
         return qr.screenshot_as_base64
 
@@ -381,6 +410,12 @@ class WhatsAPIDriver(object):
         """
         my_contacts = self.wapi_functions.getMyContacts()
         return [Contact(contact, self) for contact in my_contacts]
+    
+    # Edited by me
+    def return_received_message(self):
+        return_received_message = self.wapi_functions.return_required_message()
+        return return_received_message
+    # Edited
 
     def get_all_chats(self):
         """
@@ -598,7 +633,7 @@ class WhatsAPIDriver(object):
         raise ChatNotFoundError("Chat for phone {0} not found".format(number))
 
     def reload_qr(self):
-        self.driver.find_element_by_css_selector(self._SELECTORS["QRReloader"]).click()
+        self.driver.find_element(By.CSS_SELECTOR,  self._SELECTORS["QRReloader"]).click()
 
     def get_status(self):
         """
@@ -612,17 +647,17 @@ class WhatsAPIDriver(object):
         if self.driver.session_id is None:
             return WhatsAPIDriverStatus.NotConnected
         try:
-            self.driver.find_element_by_css_selector(self._SELECTORS["mainPage"])
+            self.driver.find_element(By.CSS_SELECTOR,  self._SELECTORS["mainPage"])
             return WhatsAPIDriverStatus.LoggedIn
         except NoSuchElementException:
             pass
         try:
-            self.driver.find_element_by_css_selector(self._SELECTORS["qrCode"])
+            self.driver.find_element(By.CSS_SELECTOR, self._SELECTORS["qrCode"])
             return WhatsAPIDriverStatus.NotLoggedIn
         except NoSuchElementException:
             pass
         try:
-            self.driver.find_element_by_css_selector(self._SELECTORS["OpenHereButton"])
+            self.driver.find_element(By.CSS_SELECTOR, self._SELECTORS["OpenHereButton"])
             return WhatsAPIDriverStatus.LoggedInAnotherBrowser
         except NoSuchElementException:
             pass
@@ -662,6 +697,24 @@ class WhatsAPIDriver(object):
         :type message: str
         """
         return self.wapi_functions.sendMessageToID(recipient, message)
+    
+    def send_message_via_selenium(self, mobile, message):
+        chat_url = "https://web.whatsapp.com/send?phone={mobile}&text&type=phone_number&app_absent=1"
+        self.driver.get(chat_url.format(mobile=mobile))
+        time.sleep(3)
+
+
+        inp_xpath = (
+            '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[1]/div/div[1]'
+        )
+        input_box = WebDriverWait(self.driver, 60).until(
+            EC.presence_of_element_located((By.XPATH, inp_xpath))
+        )
+        input_box.send_keys(message)
+        input_box.send_keys(Keys.ENTER)
+
+        time.sleep(5)
+        print("Done")
 
     def convert_to_base64(self, path, is_thumbnail=False):
         """

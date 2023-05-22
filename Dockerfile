@@ -1,12 +1,19 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8
+FROM python:3.10-slim
+WORKDIR /usr/src/app
 
-# Set the working directory to /app
-WORKDIR /app
+COPY requirements.txt ./
+COPY setup.py ./
 
-# COPY requirements to /app dir
-COPY requirements.txt /app
-COPY requirements /app/requirements
+RUN apt-get update
+RUN apt-get -y install gcc
+RUN apt-get -y install libmagic-dev
+RUN apt-get -y install python3-magic
 
-# Install any needed packages specified in base.txt
-RUN pip install --no-cache-dir --trusted-host pypi.python.org -r requirements.txt
+RUN pip install --upgrade pip
+RUN pip install pur
+RUN pur -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["uvicorn", "views:app", "--host", "0.0.0.0", "--port", "8086"]

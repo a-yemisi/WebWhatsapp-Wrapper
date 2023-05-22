@@ -1,1 +1,14 @@
--r requirements/base.txt
+fastapi
+geckodriver-autoinstaller
+chromedriver
+openwa
+Pillow
+protobuf
+pydantic
+python-dateutil
+python-resize-image
+python-axolotl
+python-magic
+requests
+selenium
+uvicorn
