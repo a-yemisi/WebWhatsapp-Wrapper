@@ -7,7 +7,7 @@ app = FastAPI()
 
 
 def startsession():
-    os.environ["SELENIUM"] = "http://seleniumHub-openWa:4444/wd/hub"
+    os.environ["SELENIUM"] = "http://seleniumHub-openWa-ii:4444/wd/hub"
     global driver
     driver = WhatsAPIDriver(client='chrome-remote', command_executor=os.environ["SELENIUM"])
     print("Waiting for QR")

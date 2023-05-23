@@ -1,36 +1,36 @@
 version: "3.10"
 services:
 
-  selenium-hub:
+  selenium-hub-ii:
     image: selenium/hub:latest
-    container_name: seleniumHub-openWa
+    container_name: seleniumHub-openWa-ii
     ports:
-      - "4449:4444"
+      - "4146:4444"
     volumes:
       - mydata:/app/data
   
 
 
-  ChromeService:
+  ChromeService-ii:
     image: selenium/node-chrome:latest
     shm_size: "2gb"
     ports:
-      - "5909"  
-      - "7909"
+      - "5906"  
+      - "7906"
     environment:
-      - SE_EVENT_BUS_HOST=seleniumHub-openWa
+      - SE_EVENT_BUS_HOST=seleniumHub-openWa-ii
       - SE_EVENT_BUS_PUBLISH_PORT=4442
       - SE_EVENT_BUS_SUBSCRIBE_PORT=4443
       - SE_NODE_MAX_SESSIONS=3
     depends_on:
-      - selenium-hub
+      - selenium-hub-ii
   
-  whatsapp-web:
+  whatsapp-web-ii:
     build: .
     ports:
-      - "8089:8089"
+      - "8186:8186"
     depends_on:
-      - selenium-hub
+      - selenium-hub-ii
     volumes:
       - mydata:/app/data
 
