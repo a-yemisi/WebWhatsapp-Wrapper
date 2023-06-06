@@ -36,28 +36,30 @@ def run(driver):
                 # print("Not receiving message")
                 pass
             else:
-                for i in message_received:
-                    message_content, sender_id = i
-                    print("Message Received: '{}' received from  {}".format(message_content, sender_id))
-                    driver.chat_send_seen(sender_id)
-                    mobile = re.sub(r'\D', '', sender_id)
-                    try:
-                        url = "https://sociallenderng.com/apisl/v3/callbacks/whatsappwebapi"
-                        payload = json.dumps({
-                            "phone": mobile,
-                            "body": message_content
-                        })
-                        headers = {
-                        'Content-Type': 'application/json',
-                        'Cookie': 'PHPSESSID=0428102fe34ab5c591d05adf483f2db4'
-                        }
-                        requests.request("GET", url, headers=headers, data=payload)
-                    except Exception as e:
-                        pass
-                    
-                    message_received.clear()
-                # return mobile_number, message_content
-
+                try:
+                    for i in message_received:
+                        message_content, sender_id = i
+                        print("Message Received: '{}' received from  {}".format(message_content, sender_id))
+                        driver.chat_send_seen(sender_id)
+                        mobile = re.sub(r'\D', '', sender_id)
+                        try:
+                            url = "https://sociallenderng.com/apisl/v3/callbacks/whatsappwebapi"
+                            payload = json.dumps({
+                                "phone": mobile,
+                                "body": message_content
+                            })
+                            headers = {
+                            'Content-Type': 'application/json',
+                            'Cookie': 'PHPSESSID=0428102fe34ab5c591d05adf483f2db4'
+                            }
+                            requests.request("GET", url, headers=headers, data=payload)
+                        except Exception as e:
+                            pass
+                        
+                        message_received.clear()
+                    # return mobile_number, message_content
+                except:
+                    pass
         except Exception as e:
                 print("Error:", e)
                 # driver.quit()

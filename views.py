@@ -35,7 +35,6 @@ def send_whatsapp_message(mobile_number: str= Body(...), message: str= Body(...)
     except Exception as e:
         print("Error:", e)
         return{"Error": "Message not sent"}
-
     
 @app.get("/v1/api/kill-session/")
 def kill_whatsapp_session():
