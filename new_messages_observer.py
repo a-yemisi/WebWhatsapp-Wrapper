@@ -40,22 +40,7 @@ def run(driver):
                     for i in message_received:
                         message_content, sender_id = i
                         print("Message Received: '{}' received from  {}".format(message_content, sender_id))
-                        driver.chat_send_seen(sender_id)
-                        mobile = re.sub(r'\D', '', sender_id)
-                        try:
-                            url = "https://sociallenderng.com/apisl/v3/callbacks/whatsappwebapi"
-                            payload = json.dumps({
-                                "phone": mobile,
-                                "body": message_content
-                            })
-                            headers = {
-                            'Content-Type': 'application/json',
-                            'Cookie': 'PHPSESSID=0428102fe34ab5c591d05adf483f2db4'
-                            }
-                            requests.request("GET", url, headers=headers, data=payload)
-                        except Exception as e:
-                            pass
-                        
+                        driver.chat_send_seen(sender_id)                        
                         message_received.clear()
                     # return mobile_number, message_content
                 except:
@@ -72,6 +57,21 @@ class NewMessageObserver:
     def on_message_received(self, new_messages):
         for message in new_messages:
             if message.type == "chat":
+                try:
+                    mobile = re.sub(r'\D', '', message.sender.id)
+                    url = "https://sociallenderng.com/apisl/v3/callbacks/whatsappwebapi"
+                    payload = json.dumps({
+                        "phone": mobile,
+                        "body": message.content
+                    })
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'Cookie': 'PHPSESSID=0428102fe34ab5c591d05adf483f2db4'
+                    }
+                    requests.request("GET", url, headers=headers, data=payload)
+                    print("Passed on")
+                except Exception as e:
+                    print("Error:", e)
                 return message.content, message.sender.id
             else:
                 pass

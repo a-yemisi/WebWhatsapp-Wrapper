@@ -41,7 +41,10 @@ class WapiJsWrapper(object):
         :return: Callable function object
         :rtype: JsFunction
         """
+        # print("Self:", self)
+        # print("Wapi_function:", dir(self))
         wapi_functions = dir(self)
+        
 
         if item not in wapi_functions:
             raise AttributeError("Function {0} doesn't exist".format(item))

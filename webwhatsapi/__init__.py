@@ -78,7 +78,7 @@ class WhatsAPIDriver(object):
         "firstrun": "#wrapper",
         "qrCode": "canvas[aria-label=\"Scan me!\"]",
         "qrCodePlain": "div[data-ref]",
-        "mainPage": ".two",
+        "mainPage": "._2QgSC",
         "chatList": ".infinite-list-viewport",
         "messageList": "#main > div > div:nth-child(1) > div > div.message-list",
         "unreadMessageBar": "#main > div > div:nth-child(1) > div > div.message-list > div.msg-unread",
@@ -291,18 +291,24 @@ class WhatsAPIDriver(object):
                 **extra_params,
             )
         
-        elif client == "chrome-remote":
+        elif client == "chrome-remote2":
             self._profile = webdriver.ChromeOptions()
             if self._profile_path is not None:
                 self._profile.add_argument("user-data-dir=%s" % self._profile_path)
             self.logger.info("Starting Chrome remote webdriver")
             capabilities = DesiredCapabilities.CHROME.copy()
             self.driver = webdriver.Remote(
-                    command_executor=command_executor,
-                    desired_capabilities=capabilities,
+                    command_executor,
+                    capabilities,
                     options=self._profile,
                     **extra_params
                 )
+            
+        elif client == "chrome-remote":
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("--start-maximized")
+            chrome_options.set_capability("browserName", "chrome")
+            self.driver = webdriver.Remote(command_executor, True, None, chrome_options)
 
         else:
             self.logger.error("Invalid client: %s" % client)
@@ -351,8 +357,11 @@ class WhatsAPIDriver(object):
         Waits for the app to log in or for the QR to appear
         :return: bool: True if has logged in, false if asked for QR
         """
-        WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self._SELECTORS['mainPage'] + ',' + self._SELECTORS['qrCode'])))
+
+        
         try:
+            WebDriverWait(self.driver, timeout).until(EC.visibility_of_element_located((By.CSS_SELECTOR, self._SELECTORS['mainPage'] + ',' + self._SELECTORS['qrCode'])))
+            time.sleep(20)
             self.driver.find_element(By.CSS_SELECTOR, self._SELECTORS['mainPage'])
             return True
         except NoSuchElementException:
