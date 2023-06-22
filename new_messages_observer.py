@@ -59,7 +59,7 @@ class NewMessageObserver:
             if message.type == "chat":
                 try:
                     mobile = re.sub(r'\D', '', message.sender.id)
-                    print("Received")
+                    print("Passing...")
                     url = "https://sociallenderng.com/apisl/v3/callbacks/whatsappwebapi"
                     payload = json.dumps({
                         "phone": mobile,
