@@ -1,5 +1,4 @@
 fastapi
-geckodriver-autoinstaller
 chromedriver
 openwa
 Pillow
