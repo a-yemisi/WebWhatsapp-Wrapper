@@ -60,6 +60,8 @@ class NewMessageObserver:
                 try:
                     mobile = re.sub(r'\D', '', message.sender.id)
                     print("Passing...")
+                    t1 = time.time()
+                    print("TIME:", t1)
                     url = "https://sociallenderng.com/apisl/v3/callbacks/whatsappwebapi"
                     payload = json.dumps({
                         "phone": mobile,
@@ -71,6 +73,8 @@ class NewMessageObserver:
                     }
                     requests.request("GET", url, headers=headers, data=payload)
                     print("Passed on")
+                    t2 = time.time()
+                    print("TIME:", t2)
                 except Exception as e:
                     print("Error:", e)
                 return message.content, message.sender.id
