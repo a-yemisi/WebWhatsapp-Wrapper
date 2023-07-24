@@ -17,9 +17,6 @@ def startsession():
     # driver.wait_for_login()
     # print("Bot started")
 
-
-# Run receive message
-# new_messages_observer.run_observe_message(driver)
 @app.get("/v1/api/startsession/")
 def start_whatsapp_session(background_task: BackgroundTasks):
     try:

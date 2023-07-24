@@ -9,8 +9,6 @@ services:
     volumes:
       - mydata:/app/data
   
-
-
   ChromeService-ii:
     image: selenium/node-chrome:latest
     shm_size: "2gb"
