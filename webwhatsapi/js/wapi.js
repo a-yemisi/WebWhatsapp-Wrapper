@@ -65,7 +65,7 @@ if (!window.Store) {
             webpackJsonp([], {'parasite': (x, y, z) => getStore(z)}, ['parasite']);
         } else {
             let tag = new Date().getTime();
-			webpackChunkbuild.push([
+			webpackChunkwhatsapp_web_client.push([
 				["parasite" + tag],
 				{
 
@@ -776,37 +776,90 @@ window.WAPI.sendMessageToID = function (id, message, done) {
     return false;
 }
 
+// window.WAPI.sendMessage = function (id, message, done) {
+//     var chat = WAPI.getChat(id);
+//     if (chat !== undefined) {
+//         if (done !== undefined) {
+//             chat.sendMessage(message).then(function () {
+//                 function sleep(ms) {
+//                     return new Promise(resolve => setTimeout(resolve, ms));
+//                 }
+
+//                 var trials = 0;
+
+//                 function check() {
+//                     for (let i = chat.msgs.models.length - 1; i >= 0; i--) {
+//                         let msg = chat.msgs.models[i];
+
+//                         if (!msg.senderObj.isMe || msg.body != message) {
+//                             continue;
+//                         }
+//                         done(WAPI._serializeMessageObj(msg));
+//                         return true; // Changed from True to true
+//                     }
+//                     trials += 1;
+//                     console.log(trials);
+//                     if (trials > 30) {
+//                         done(true);
+//                         return;
+//                     }
+//                     sleep(500).then(check);
+//                 }
+//                 check();
+//             })
+//             .catch(function (error) {
+//                 console.error(error); // Log the error
+//                 done(false); // Call done with false in case of error
+//             });
+//             return true;
+//         } else {
+//             chat.sendMessage(message);
+//             return true;
+//         }
+//     } else {
+//         if (done !== undefined) done(false);
+//         return false;
+//     }
+// };
+
 window.WAPI.sendMessage = function (id, message, done) {
     var chat = WAPI.getChat(id);
     if (chat !== undefined) {
         if (done !== undefined) {
-            chat.sendMessage(message).then(function () {
-                function sleep(ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                }
-
-                var trials = 0;
-
-                function check() {
-                    for (let i = chat.msgs.models.length - 1; i >= 0; i--) {
-                        let msg = chat.msgs.models[i];
-
-                        if (!msg.senderObj.isMe || msg.body != message) {
-                            continue;
+            // Check if chat.sendMessage is a function before calling it
+            if (typeof chat.sendMessage === 'function') {
+                return Promise.resolve(chat.sendMessage(message)).then(function () {
+                    function sleep(ms) {
+                        return new Promise(resolve => setTimeout(resolve, ms));
+                    }
+                        var trials = 0;
+                        function check() {
+                            for (let i = chat.msgs.models.length - 1; i >= 0; i--) {
+                                let msg = chat.msgs.models[i];
+                                if (!msg.senderObj.isMe || msg.body !== message) {
+                                    continue;
+                                }
+                                done(WAPI._serializeMessageObj(msg));
+                                return true;
+                            }
+                            trials += 1;
+                            console.log(trials);
+                            if (trials > 30) {
+                                done(true);
+                                return;
+                            }
+                            sleep(500).then(check);
                         }
-                        done(WAPI._serializeMessageObj(msg));
-                        return True;
-                    }
-                    trials += 1;
-                    console.log(trials);
-                    if (trials > 30) {
-                        done(true);
-                        return;
-                    }
-                    sleep(500).then(check);
-                }
-                check();
-            });
+                        check();
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        if (done !== undefined) done(false);
+                    });
+            } else {
+                console.error('chat.sendMessage is not a function');
+                if (done !== undefined) done(false);
+            }
             return true;
         } else {
             chat.sendMessage(message);
@@ -817,6 +870,7 @@ window.WAPI.sendMessage = function (id, message, done) {
         return false;
     }
 };
+
 
 window.WAPI.sendMessage2 = function (id, message, done) {
     var chat = WAPI.getChat(id);

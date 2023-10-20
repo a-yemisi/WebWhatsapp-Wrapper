@@ -1,1 +1,19 @@
--r requirements/base.txt
+fastapi
+chromedriver
+openwa
+Pillow
+protobuf
+pydantic
+python-dateutil
+python-resize-image
+python-axolotl
+python-dotenv
+python-magic
+pymysql
+mysql.connector
+requests
+sqlalchemy
+selenium
+numpy
+uvicorn
+Jinja2

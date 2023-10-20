@@ -13,7 +13,7 @@ from base64 import b64decode, b64encode
 from io import BytesIO
 from json import dumps, loads
 
-import magic
+# import magic
 from PIL import Image
 from axolotl.kdf.hkdfv3 import HKDFv3
 from axolotl.util.byteutil import ByteUtil
@@ -261,9 +261,9 @@ class WhatsAPIDriver(object):
 
             if executable_path is not None:
                 executable_path = os.path.abspath(executable_path)
-                self.driver = webdriver.Chrome(chrome_options=self._profile, executable_path=executable_path, **extra_params)
+                self.driver = webdriver.Chrome(options=self._profile, executable_path=executable_path, **extra_params)
             else:
-                self.driver = webdriver.Chrome(chrome_options=self._profile, **extra_params)
+                self.driver = webdriver.Chrome(options=self._profile, **extra_params)
 
         elif client == "remote":
             if self._profile_path is not None:

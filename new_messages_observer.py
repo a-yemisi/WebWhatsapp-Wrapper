@@ -6,16 +6,16 @@ from webwhatsapi import WhatsAPIDriver
 
 
 def run():
-    print("Environment", os.environ)
+    # print("Environment", os.environ)
     try:
-        os.environ["SELENIUM"]
+        os.environ["SELENIUM"] = "http://localhost"
     except KeyError:
         print("Please set the environment variable SELENIUM to Selenium URL")
         sys.exit(1)
 
-    driver = WhatsAPIDriver(client="remote", command_executor=os.environ["SELENIUM"])
+    driver = WhatsAPIDriver(client="chrome", command_executor=os.environ["SELENIUM"])
     print("Waiting for QR")
-    driver.wait_for_login()
+    # driver.wait_for_login()
     print("Bot started")
 
     driver.subscribe_new_messages(NewMessageObserver())

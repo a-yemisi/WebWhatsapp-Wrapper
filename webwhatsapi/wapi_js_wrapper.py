@@ -1,6 +1,6 @@
 import os
 import time
-import collections
+import collections.abc as collections
 import numpy as np
 
 from selenium.common.exceptions import WebDriverException, JavascriptException
@@ -41,7 +41,10 @@ class WapiJsWrapper(object):
         :return: Callable function object
         :rtype: JsFunction
         """
+        # print("Self:", self)
+        # print("Wapi_function:", dir(self))
         wapi_functions = dir(self)
+        
 
         if item not in wapi_functions:
             raise AttributeError("Function {0} doesn't exist".format(item))
@@ -49,6 +52,7 @@ class WapiJsWrapper(object):
         return JsFunction(item, self.driver, self)
 
     def __dir__(self):
+        # print("Working...")
         """
         Load wapi.js and returns its functions
 
@@ -65,19 +69,26 @@ class WapiJsWrapper(object):
             script_path = os.getcwd()
 
         result = self.driver.execute_script(
-            "if (document.querySelector('*[data-icon=chat]') !== null) { return true } else { return false }"
-        )  # noqa E501
+            "if (document.querySelector('*[data-icon=default-user]') !== null || document.querySelector('*[data-icon=chat]') !== null ) { return true } else { return false }")
+             # noqa E501
+            #  Yemisi edited
+        # print("Result is:", result)
         if result:
             with open(os.path.join(script_path, "js", "wapi.js"), "r") as script:
                 self.driver.execute_script(script.read())
 
             result = self.driver.execute_script("return Object.keys(window.WAPI)")
+            # print("GETTING RESULT:", result)
             if result:
                 self.available_functions = result
                 return self.available_functions
             else:
                 return []
 
+    def return_required_message(self):
+        return_new_message = self.new_messages_observable.return_new_messages()
+        return return_new_message
+    
     def quit(self):
         self.new_messages_observable.stop()
 
@@ -163,6 +174,7 @@ class NewMessagesObservable(Thread):
         self.wapi_driver = wapi_driver
         self.webdriver = webdriver
         self.observers = []
+        self.was_observed =[]
         self.running = False
 
     def run(self):
@@ -181,7 +193,9 @@ class NewMessagesObservable(Thread):
                         )
 
                     self._inform_all(new_messages)
+                    # print("Passes")
             except Exception as e:  # noqa F841
+                # print("Error:", e)
                 pass
 
             time.sleep(2)
@@ -203,4 +217,10 @@ class NewMessagesObservable(Thread):
 
     def _inform_all(self, new_messages):
         for observer in self.observers:
-            observer.on_message_received(new_messages)
+            observed = observer.on_message_received(new_messages)
+            self.was_observed.append(observed)
+    
+    def return_new_messages(self):
+        # for i in self.was_observed:
+        #     print(i)
+        return self.was_observed
